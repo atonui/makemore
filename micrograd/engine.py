@@ -13,6 +13,9 @@ class Value:
     self._op = _op
     self.label = label
 
+  def __hash__(self):
+    return id(self)
+
   def __repr__(self):
     '''print out a nice looking expression rather that the memory address'''
 
@@ -97,6 +100,24 @@ class Value:
       self.grad += out.data * out.grad
     out._backward = _backward
     return out
+
+# ------------------------------------------------------------------
+# Comparison operators
+  # def __lt__(self, other):
+  #   return True if self.data < other.data else False
+
+  # def __gt__(self, other):
+  #   return True if self.data > other.data else False
+
+  # def __le__(self, other):
+  #   return True if self.data <= other.data else False
+
+  # def __ge__(self, other):
+  #   return True if self.data >= other.data else False
+
+  # def __eq__(self, other):
+  #   return True if self.data == other.data else False
+  
 # ------------------------------------------------------------------
 # activation functions
   def tanh(self):
@@ -116,6 +137,14 @@ class Value:
     def _backward():
       '''returns the functions gradient'''
       self.grad += (out.data > 0) * out.grad
+    out._backward = _backward
+    return out
+
+  def leaky_relu(self, alpha=0.01):
+    out = Value(self.data if self.data > 0 else alpha * self.data, (self, ), 'LeakyReLU')
+
+    def _backward():
+        self.grad += (1 if out.data > 0 else alpha) * out.grad
     out._backward = _backward
     return out
 

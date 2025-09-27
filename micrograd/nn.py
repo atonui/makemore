@@ -19,19 +19,19 @@ class Neuron(Module):
     '''nin -> number of inputs to each neuron'''
     self.w = [Value(np.random.uniform(-1,1)) for _ in range(nin)] # initialise the neuron with random weights for each input to the neuron
     self.b = Value(0) # initialise a random bias for each neuron
-    self.nonlinear = nonlin # by default we use a non linear activation function
+    self.nonlin = nonlin # by default we use a non linear activation function
 
   def __call__(self, x):
     ''' w * x + b -> forward pass'''
     activation = sum((wi*xi for wi, xi in zip(self.w, x)), self.b)
-    out = activation.relu() if self.nonlinear else activation
+    out = activation.leaky_relu() if self.nonlin else activation
     return out
 
   def parameters(self):
     return self.w + [self.b]
 
   def __repr__(self):
-    return f"{'ReLU' if self.nonlinear else 'Linear'} Neuron({len(self.w)})"
+    return f"{'ReLU' if self.nonlin else 'Linear'} Neuron({len(self.w)})"
 
 class Layer(Module):
   '''
@@ -41,7 +41,7 @@ class Layer(Module):
     but not connected to each other.
     '''
 
-  def __init__(self, nin, non, **kwargs):
+  def __init__(self, nin, non):
     '''
     nin -> number of inputs to each neuron
     non -> number of neurons in the layer
@@ -67,7 +67,9 @@ class MLP(Module):
               layer and it defines the sizes of all the
               layers we want in the MLP'''
     size = [nin] + nons
-    self.layers = [Layer(size[i], size[i+1], nonlinear=i != len(nons)-1) for i in range(len(nons))]
+    # self.layers = [Layer(size[i], size[i+1], nonlin=i != len(nons)-1) for i in range(len(nons))]
+    self.layers = [Layer(size[i], size[i+1]) for i in range(len(nons))]
+    
 
   def __call__(self, x):
     for layer in self.layers:
